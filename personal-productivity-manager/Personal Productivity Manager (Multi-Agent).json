@@ -1,0 +1,570 @@
+{
+  "name": "Personal Productivity Manager (Multi-Agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "67cd414c-24b2-4aec-8dad-fbfa91cce807",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the Personal Productivity Manager. You delegate to specialist sub-agents.\n\nYou have 3 specialist agents:\n\n1. Task_Agent — TASKS / to-do items (no specific time)\n2. Note_Agent — NOTES, IDEAS, thoughts to remember\n3. Reminder_Agent — REMINDERS tied to a specific DATE or TIME\n\nDecide:\n- \"I need to...\" / \"add task...\" / \"to-do...\" → Task_Agent\n- \"note that...\" / \"idea:\" / \"remember that...\" → Note_Agent\n- \"remind me at/on/by [time/date]\" → Reminder_Agent\n\nFor every user message: pick ONE agent, pass the full user message, return the agent's reply.\n\nIf message is unclear, just ask what they want to save."
+        }
+      },
+      "id": "2814ef6f-48dd-48d6-8bde-b5a9e9a814db",
+      "name": "Productivity Manager",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        808,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "83e35dd1-73b8-4f10-ab27-306a834af8e4",
+      "name": "Groq Manager Brain",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        544,
+        576
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "xK4qsCu3GVmcRylo",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this when the user wants to add a TASK or TO-DO item. Examples: \"I need to finish the report\", \"add task: clean room\".",
+        "text": "={{ $fromAI(\"user_message\", \"the original user message about the task\", \"string\") }}",
+        "options": {
+          "systemMessage": "You are the Task Agent. Save the user task using the Save_Task tool.\n\nSteps:\n1. Extract a clear task description\n2. Decide priority: words like \"urgent\", \"asap\", \"important\" = High; everyday stuff = Medium; \"someday\", \"maybe\" = Low\n3. Call Save_Task tool\n4. Reply with: \"Task added: [task] (Priority: [priority])\""
+        }
+      },
+      "id": "227bf432-9ea5-4c8d-a777-b1197259cb84",
+      "name": "Task_Agent",
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "a280b7eb-890a-474a-819a-a8b7c551ef06",
+      "name": "Groq Task Brain",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        816,
+        784
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "xK4qsCu3GVmcRylo",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc/edit",
+          "cachedResultName": "Productivity Manager"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Tasks"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
+            "Task": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('task', 'the task description') }}",
+            "Priority": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('priority', 'task priority: High, Medium or Low') }}",
+            "Status": "Pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Task",
+              "displayName": "Task",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5f412e31-4f42-4bd1-aca3-b526235a1039",
+      "name": "Save_Task",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        784
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Q7Rtxp0XtGpZOxCY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this when the user wants to save a NOTE, IDEA, or thought (NOT a task and NOT a time-based reminder).",
+        "text": "={{ $fromAI(\"user_message\", \"the original user message about the note\", \"string\") }}",
+        "options": {
+          "systemMessage": "You are the Note Agent. Save the note using the Save_Note tool.\n\nSteps:\n1. Create a short topic/title (3-5 words max)\n2. Use the full content as the note body\n3. Call Save_Note tool\n4. Reply with: \"Note saved under: [topic]\""
+        }
+      },
+      "id": "60a50a68-0bec-4552-806c-f6f438391237",
+      "name": "Note_Agent",
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "03953a8d-82a3-40d7-b6d0-9b207fd385d7",
+      "name": "Groq Note Brain",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        784
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "xK4qsCu3GVmcRylo",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc/edit",
+          "cachedResultName": "Productivity Manager"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Notes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
+            "Topic": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('topic', 'short topic or title for the note') }}",
+            "Note": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('note', 'the full note content') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "7cb46b47-0e83-47a2-b507-136042148eeb",
+      "name": "Save_Note",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        784
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Q7Rtxp0XtGpZOxCY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this when the user wants to set a REMINDER tied to a specific date or time. Examples: \"remind me to call mom tomorrow at 5pm\".",
+        "text": "={{ $fromAI(\"user_message\", \"the original user message about the reminder\", \"string\") }}",
+        "options": {
+          "systemMessage": "=You are the Reminder Agent. Save the reminder using the Save_Reminder tool.\n\nSteps:\n1. Extract what to be reminded about (short and clear)\n2. Figure out the due date in YYYY-MM-DD format. Today is {{ $now.toFormat(\"yyyy-MM-dd\") }}. Resolve \"tomorrow\", \"next Monday\", etc. relative to today.\n3. Extract the time in HH:MM 24-hour format if mentioned, otherwise leave empty\n4. Call Save_Reminder tool\n5. Reply with: \"Reminder set: [reminder] on [date] at [time]\""
+        }
+      },
+      "id": "128c1784-a7d8-4c28-8ce3-2d6f60f519b7",
+      "name": "Reminder_Agent",
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "0c6aa9ac-9cc4-4318-a679-8c1ddc233c9d",
+      "name": "Groq Reminder Brain",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        784
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "xK4qsCu3GVmcRylo",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lTy3z1aoKJG9XtEZz3XOUkUa8HkQQIRN4UUH0GGR5fc/edit",
+          "cachedResultName": "Productivity Manager"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Reminders"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Created": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
+            "Reminder": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('reminder', 'what to be reminded about') }}",
+            "Due_Date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', 'when the reminder is due in YYYY-MM-DD format') }}",
+            "Due_Time": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_time', 'time in HH:MM 24-hour format, or empty if not specified') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reminder",
+              "displayName": "Reminder",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due_Time",
+              "displayName": "Due_Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "aca27741-0ee9-4367-97a2-d7299fb98441",
+      "name": "Save_Reminder",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        784
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Q7Rtxp0XtGpZOxCY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        352
+      ],
+      "id": "b132e954-fd72-44cb-8af6-9a6f1582c888",
+      "name": "When chat message received",
+      "webhookId": "112de28a-3be6-4cf1-9b26-d22d6870911a"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Manager Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Task Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Task_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Task": {
+      "ai_tool": [
+        [
+          {
+            "node": "Task_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Note_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Note Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Note_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Note": {
+      "ai_tool": [
+        [
+          {
+            "node": "Note_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reminder_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Reminder Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reminder_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Reminder": {
+      "ai_tool": [
+        [
+          {
+            "node": "Reminder_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Productivity Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "11a09ef7-0deb-4495-8a27-a584ee218c3b",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "instanceId": "f83126bc42ab59525b1715ebcda23bb6debe9c5a0c55200bb296c39ab1847105"
+  },
+  "id": "4qQN0etjfHuYrmWM",
+  "tags": []
+}
