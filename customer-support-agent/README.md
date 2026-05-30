@@ -1,4 +1,4 @@
-# 🎧 Customer Support Workflow (v2)
+# 🎧 Customer Support Workflow
 
 > A **fully free, AI-powered email triage system** built in n8n that watches your Gmail inbox, classifies incoming emails using Groq, routes customer support queries to a RAG-powered AI Agent backed by Pinecone, and ignores everything else — all at zero cost.
 
@@ -57,8 +57,6 @@ Text Classifier
 | **Groq Chat Model** | Powers the AI Agent's reasoning and response | Free tier |
 | **Pinecone Vector Store** | Stores and retrieves knowledge base embeddings | Free tier |
 | **Embeddings Google Gemini** | Converts queries to vectors for semantic search | Free tier |
-
-> 💸 **Total cost to run: $0.** This version replaces OpenAI with Groq + Gemini Embeddings, making the entire stack free.
 
 ---
 
@@ -156,19 +154,6 @@ Gmail: Add Label "AI Handled" ← marks the email as processed
     ↓
 (Optional) Google Sheets: Log ← logs ticket details for reporting
 ```
-
----
-
-## 🆚 v1 vs v2 Comparison
-
-| Feature | v1 (Previous) | v2 (This version) |
-|---|---|---|
-| Classifier model | OpenAI | **Groq (free)** |
-| Agent model | OpenAI | **Groq (free)** |
-| Embeddings | OpenAI | **Google Gemini (free)** |
-| Total cost | ~Paid | **$0** |
-| Speed | Fast | **Faster (Groq)** |
-
 ---
 
 ## 🛠️ Skills Used
